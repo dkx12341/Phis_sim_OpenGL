@@ -23,7 +23,6 @@
 *.dll
 *.so.*
 
-
 # Fortran module files
 *.mod
 *.smod
@@ -67,3 +66,12 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+.vscode
+
+# Visual Studio / CMake generated files
+CMakeFiles/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.slnx
