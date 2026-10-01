@@ -1,18 +1,18 @@
 #pragma once
 
 #include "shader.hpp"
-#include "../objects/particle/particle.hpp"
+#include "../objects/circle/circle.hpp"
 
 
-class ParticleRenderer
+class CircleRenderer
 {
 public:
-    ParticleRenderer();
+    CircleRenderer();
 
-    ~ParticleRenderer();
+    ~CircleRenderer();
 
     void draw(
-        const Particle& particle,
+        const Circle& circle,
         const Shader& shader
     ) const;
 

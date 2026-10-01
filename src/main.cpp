@@ -6,8 +6,10 @@
 #include <glm/vec3.hpp>
 
 #include "renderer/shader.hpp"
-#include "renderer/particle_renderer.hpp"
-#include "objects/particle/particle.hpp"
+#include "renderer/circle_renderer.hpp"
+#include "objects/circle/circle.hpp"
+#include "physics/world_physics.hpp"
+
 
 
 int main()
@@ -18,17 +20,31 @@ int main()
         return -1;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(
-        1080,
-        720,
-        "Physics Simulation",
-        nullptr,
-        nullptr
+    glfwWindowHint(
+        GLFW_CONTEXT_VERSION_MAJOR,
+        3
     );
+
+    glfwWindowHint(
+        GLFW_CONTEXT_VERSION_MINOR,
+        3
+    );
+
+    glfwWindowHint(
+        GLFW_OPENGL_PROFILE,
+        GLFW_OPENGL_CORE_PROFILE
+    );
+
+
+    GLFWwindow* window =
+        glfwCreateWindow(
+            720,
+            720,
+            "Physics Simulation",
+            nullptr,
+            nullptr
+        );
+
 
     if (!window)
     {
@@ -39,10 +55,14 @@ int main()
         return -1;
     }
 
+
     glfwMakeContextCurrent(window);
 
+
     if (!gladLoadGLLoader(
-        reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+        reinterpret_cast<GLADloadproc>(
+            glfwGetProcAddress
+        )))
     {
         std::cerr << "Failed to initialize GLAD\n";
 
@@ -51,6 +71,7 @@ int main()
 
         return -1;
     }
+
 
     std::cout << "OpenGL initialized!\n";
 
@@ -70,30 +91,60 @@ int main()
 
 
     // =========================================================
-    // OBIEKTY
+    // PARTICLE
     // =========================================================
 
-    Particle particle(
-        0.1f,
-        0.05f,
-        glm::vec3(1.0f, 1.0f, 1.0f)
+    Circle circle(
+        0.02f,
+        0.02f,
+        1.0f,
+        glm::vec3(
+            1.0f,
+            0.5f,
+            0.0f
+        )
     );
+
+
+    // =========================================================
+    // PHYSICS
+    // =========================================================
+
+    WorldPhysics physicsWorld(
+        glm::vec2(0.0f, -0.3f),
+        glm::vec2(-0.95f, -0.95f),
+        glm::vec2(1.0f, 1.0f)
+    );
+
+    physicsWorld.addCircle(circle);
 
 
     // =========================================================
     // RENDERER
     // =========================================================
 
-    ParticleRenderer renderer;
+    CircleRenderer renderer;
 
 
     // =========================================================
-    // GŁÓWNA PĘTLA
+    // MAIN LOOP
     // =========================================================
+
+    double lastTime = glfwGetTime();
 
     while (!glfwWindowShouldClose(window))
     {
+        // Czas od poprzedniej klatki
+        double currentTime = glfwGetTime();
+
+        float deltaTime =
+            static_cast<float>(currentTime - lastTime);
+
+        lastTime = currentTime;
+
+
         glfwPollEvents();
+
 
         glClearColor(
             0.1f,
@@ -106,12 +157,12 @@ int main()
 
 
         // Fizyka
-        particle.update(0.016f);
+        physicsWorld.update(deltaTime);
 
 
         // Renderowanie
         renderer.draw(
-            particle,
+            circle,
             shader
         );
 
@@ -119,9 +170,8 @@ int main()
         glfwSwapBuffers(window);
     }
 
-
     // =========================================================
-    // SPRZĄTANIE
+    // CLEANUP
     // =========================================================
 
     glfwDestroyWindow(window);

@@ -16,14 +16,17 @@ find_package(glad CONFIG REQUIRED)
 add_executable(PhysicsSimulation
     src/main.cpp
 
-    src/objects/particle/particle.cpp
-    src/objects/particle/particle.hpp
+    src/objects/circle/circle.cpp
+    src/objects/circle/circle.hpp
 
     src/renderer/shader.cpp
     src/renderer/shader.hpp
 
-    src/renderer/particle_renderer.cpp
-    src/renderer/particle_renderer.hpp
+    src/renderer/circle_renderer.cpp
+    src/renderer/circle_renderer.hpp
+
+    src/physics/world_physics.hpp
+    src/physics/world_physics.cpp
 )
 
 target_link_libraries(PhysicsSimulation

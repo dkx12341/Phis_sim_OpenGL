@@ -4,26 +4,42 @@
 #include <glm/vec3.hpp>
 
 
-class Particle
+class Circle
 {
 public:
-    Particle(
+    Circle(
         float mass,
         float radius,
+        float restitution,
         const glm::vec3& color
     );
+    
+    Circle(
+    float mass,
+    float radius,
+    const glm::vec3& color
+    );
+
+    void applyForce(const glm::vec2& force);
 
     void update(float deltaTime);
 
     float getRadius() const;
+    float getMass() const;
+    float getRestitution() const;
 
     const glm::vec2& getPosition() const;
+    const glm::vec2& getVelocity() const;
 
     const glm::vec3& getColor() const;
+
+    void setPosition(const glm::vec2& position);
+    void setVelocity(const glm::vec2& velocity);
 
 private:
     float mass;
     float radius;
+    float restitution;
 
     glm::vec2 position;
     glm::vec2 velocity;

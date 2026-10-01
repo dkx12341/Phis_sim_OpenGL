@@ -1,4 +1,4 @@
-#include "particle_renderer.hpp"
+#include "circle_renderer.hpp"
 
 #include <cmath>
 #include <vector>
@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 
 
-ParticleRenderer::ParticleRenderer()
+CircleRenderer::CircleRenderer()
     : VAO(0),
       VBO(0),
       vertexCount(0)
@@ -15,14 +15,14 @@ ParticleRenderer::ParticleRenderer()
 }
 
 
-ParticleRenderer::~ParticleRenderer()
+CircleRenderer::~CircleRenderer()
 {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 }
 
 
-void ParticleRenderer::createCircle()
+void CircleRenderer::createCircle()
 {
     constexpr int segments = 8;
 
@@ -80,21 +80,21 @@ void ParticleRenderer::createCircle()
 }
 
 
-void ParticleRenderer::draw(
-    const Particle& particle,
+void CircleRenderer::draw(
+    const Circle& circle,
     const Shader& shader
 ) const
 {
     shader.use();
 
     const glm::vec2& position =
-        particle.getPosition();
+        circle.getPosition();
 
     const glm::vec3& color =
-        particle.getColor();
+        circle.getColor();
 
     const float radius =
-        particle.getRadius();
+        circle.getRadius();
 
     shader.setVec2(
         "uPosition",
