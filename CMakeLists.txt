@@ -15,8 +15,15 @@ find_package(glad CONFIG REQUIRED)
 
 add_executable(PhysicsSimulation
     src/main.cpp
-    src/Renderer/Shader.cpp
-    src/Renderer/Shader.hpp
+
+    src/objects/particle/particle.cpp
+    src/objects/particle/particle.hpp
+
+    src/renderer/shader.cpp
+    src/renderer/shader.hpp
+
+    src/renderer/particle_renderer.cpp
+    src/renderer/particle_renderer.hpp
 )
 
 target_link_libraries(PhysicsSimulation

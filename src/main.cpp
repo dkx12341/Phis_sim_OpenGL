@@ -1,11 +1,13 @@
 #include <iostream>
-#include <cmath>
-#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Renderer/Shader.hpp"
+#include <glm/vec3.hpp>
+
+#include "renderer/shader.hpp"
+#include "renderer/particle_renderer.hpp"
+#include "objects/particle/particle.hpp"
 
 
 int main()
@@ -22,7 +24,7 @@ int main()
 
     GLFWwindow* window = glfwCreateWindow(
         1080,
-        1080,
+        720,
         "Physics Simulation",
         nullptr,
         nullptr
@@ -56,70 +58,33 @@ int main()
               << glGetString(GL_RENDERER)
               << '\n';
 
+
+    // =========================================================
+    // SHADER
+    // =========================================================
+
     Shader shader(
         "shaders/basic.vert",
         "shaders/basic.frag"
     );
 
-    const int segments = 32;
-    const float radius = 0.5f;
 
-    std::vector<float> vertices;
+    // =========================================================
+    // OBIEKTY
+    // =========================================================
 
-    // Środek koła
-    vertices.push_back(0.0f);
-    vertices.push_back(0.0f);
-    vertices.push_back(0.0f);
-
-    // Punkty na obwodzie
-    for (int i = 0; i <= segments; ++i)
-    {
-        const float angle =
-            2.0f * 3.14159265359f * i / segments;
-
-        const float x =
-            radius * std::cos(angle);
-
-        const float y =
-            radius * std::sin(angle);
-
-        vertices.push_back(x);
-        vertices.push_back(y);
-        vertices.push_back(0.0f);
-    }
+    Particle particle(
+        0.1f,
+        0.05f,
+        glm::vec3(1.0f, 1.0f, 1.0f)
+    );
 
 
     // =========================================================
-    // VAO + VBO
+    // RENDERER
     // =========================================================
 
-    unsigned int VBO;
-    unsigned int VAO;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        vertices.size() * sizeof(float),
-        vertices.data(),
-        GL_STATIC_DRAW
-    );
-
-    glVertexAttribPointer(
-        0,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        3 * sizeof(float),
-        (void*)0
-    );
-
-    glEnableVertexAttribArray(0);
+    ParticleRenderer renderer;
 
 
     // =========================================================
@@ -139,15 +104,17 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader.use();
 
-        glBindVertexArray(VAO);
+        // Fizyka
+        particle.update(0.016f);
 
-        glDrawArrays(
-            GL_TRIANGLE_FAN,
-            0,
-            static_cast<GLsizei>(vertices.size() / 3)
+
+        // Renderowanie
+        renderer.draw(
+            particle,
+            shader
         );
+
 
         glfwSwapBuffers(window);
     }

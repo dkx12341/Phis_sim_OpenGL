@@ -1,4 +1,4 @@
-#include "Shader.hpp"
+#include "shader.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -154,4 +154,60 @@ unsigned int Shader::compileShader(
     }
 
     return shader;
+}
+
+void Shader::setFloat(
+    const std::string& name,
+    float value
+) const
+{
+    const int location =
+        glGetUniformLocation(
+            ID,
+            name.c_str()
+        );
+
+    glUniform1f(
+        location,
+        value
+    );
+}
+
+
+void Shader::setVec2(
+    const std::string& name,
+    const glm::vec2& value
+) const
+{
+    const int location =
+        glGetUniformLocation(
+            ID,
+            name.c_str()
+        );
+
+    glUniform2f(
+        location,
+        value.x,
+        value.y
+    );
+}
+
+
+void Shader::setVec3(
+    const std::string& name,
+    const glm::vec3& value
+) const
+{
+    const int location =
+        glGetUniformLocation(
+            ID,
+            name.c_str()
+        );
+
+    glUniform3f(
+        location,
+        value.x,
+        value.y,
+        value.z
+    );
 }
