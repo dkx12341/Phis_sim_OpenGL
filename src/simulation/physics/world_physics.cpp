@@ -22,6 +22,10 @@ void WorldPhysics::addCircle(
     circles.push_back(&circle);
 }
 
+glm::vec2 WorldPhysics::getMaxBounds() const{
+    return maxBounds;
+}
+
 
 void WorldPhysics::update(
     float deltaTime
@@ -70,6 +74,7 @@ void WorldPhysics::handleBounds(
 
         velocity.x =
             -velocity.x;
+        velocity = velocity * circle.getRestitution();
     }
 
 
@@ -81,6 +86,7 @@ void WorldPhysics::handleBounds(
 
         velocity.x =
             -velocity.x;
+        velocity = velocity * circle.getRestitution();
     }
 
 
@@ -92,6 +98,7 @@ void WorldPhysics::handleBounds(
 
         velocity.y =
             -velocity.y;
+        velocity = velocity * circle.getRestitution();
     }
 
 
@@ -103,8 +110,9 @@ void WorldPhysics::handleBounds(
 
         velocity.y =
             -velocity.y;
+        velocity = velocity * circle.getRestitution();
     }
 
     circle.setPosition(position);
-    circle.setVelocity(velocity * circle.getRestitution());
+    circle.setVelocity(velocity);
 }

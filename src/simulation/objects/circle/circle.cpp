@@ -5,8 +5,7 @@
 Circle::Circle(
     float mass,
     float radius,
-    float restitution,
-    const glm::vec3& color
+    float restitution
 )
     : mass(mass),
       radius(radius),
@@ -14,16 +13,15 @@ Circle::Circle(
       position(0.0f, 0.0f),
       velocity(0.0f, 0.0f),
       acceleration(0.0f, 0.0f),
-      color(color)
+      color(1.0f, 1.0f, 1.0f)
 {
 }
 
 Circle::Circle(
     float mass,
-    float radius,
-    const glm::vec3& color
+    float radius
 )
-    : Circle(mass, radius, 0.9f, color)
+    : Circle(mass, radius, 0.9f)
 {
 }
 

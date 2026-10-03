@@ -1,20 +1,27 @@
 #pragma once
 
+#include <glm/mat4x4.hpp>
+
 #include "shader.hpp"
-#include "../objects/circle/circle.hpp"
+
+#include "../simulation/objects/circle/circle.hpp"
 
 
 class CircleRenderer
 {
 public:
+
     CircleRenderer();
 
     ~CircleRenderer();
 
+
     void draw(
         const Circle& circle,
-        const Shader& shader
+        const Shader& shader,
+        const glm::mat4& cameraMatrix
     ) const;
+
 
 private:
 

@@ -6,7 +6,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-
+#include <glm/mat4x4.hpp>
 
 class Shader
 {
@@ -35,6 +35,11 @@ public:
     void setVec3(
         const std::string& name,
         const glm::vec3& value
+    ) const;
+
+    void setMat4(
+    const std::string& name,
+    const glm::mat4& value
     ) const;
 
 private:

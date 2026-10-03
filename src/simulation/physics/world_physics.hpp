@@ -20,6 +20,8 @@ public:
 
     void update(float deltaTime);
 
+    glm::vec2 getMaxBounds() const;
+
 private:
     glm::vec2 gravity;
 

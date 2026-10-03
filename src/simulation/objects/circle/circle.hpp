@@ -10,14 +10,12 @@ public:
     Circle(
         float mass,
         float radius,
-        float restitution,
-        const glm::vec3& color
+        float restitution
     );
-    
+
     Circle(
-    float mass,
-    float radius,
-    const glm::vec3& color
+        float mass,
+        float radius
     );
 
     void applyForce(const glm::vec2& force);

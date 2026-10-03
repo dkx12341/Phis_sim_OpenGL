@@ -16,8 +16,8 @@ find_package(glad CONFIG REQUIRED)
 add_executable(PhysicsSimulation
     src/main.cpp
 
-    src/objects/circle/circle.cpp
-    src/objects/circle/circle.hpp
+    src/simulation/objects/circle/circle.cpp
+    src/simulation/objects/circle/circle.hpp
 
     src/renderer/shader.cpp
     src/renderer/shader.hpp
@@ -25,9 +25,15 @@ add_executable(PhysicsSimulation
     src/renderer/circle_renderer.cpp
     src/renderer/circle_renderer.hpp
 
-    src/physics/world_physics.hpp
-    src/physics/world_physics.cpp
-)
+    src/simulation/physics/world_physics.hpp
+    src/simulation/physics/world_physics.cpp
+
+    src/camera/camera.hpp
+    src/camera/camera.cpp
+
+    src/simulation/simulation.hpp
+    src/simulation/simulation.cpp
+    ) 
 
 target_link_libraries(PhysicsSimulation
     PRIVATE

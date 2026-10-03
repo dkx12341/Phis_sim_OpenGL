@@ -17,14 +17,21 @@ CircleRenderer::CircleRenderer()
 
 CircleRenderer::~CircleRenderer()
 {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(
+        1,
+        &VAO
+    );
+
+    glDeleteBuffers(
+        1,
+        &VBO
+    );
 }
 
 
 void CircleRenderer::createCircle()
 {
-    constexpr int segments = 8;
+    constexpr int segments = 32;
 
     std::vector<float> vertices;
 
@@ -33,30 +40,51 @@ void CircleRenderer::createCircle()
     vertices.push_back(0.0f);
     vertices.push_back(0.0f);
 
-    // Punkty na obwodzie
+
+    // Obwód koła
     for (int i = 0; i <= segments; ++i)
     {
         const float angle =
-            2.0f * 3.14159265359f * i / segments;
+            2.0f *
+            3.14159265359f *
+            static_cast<float>(i) /
+            static_cast<float>(segments);
+
 
         const float x = std::cos(angle);
         const float y = std::sin(angle);
+
 
         vertices.push_back(x);
         vertices.push_back(y);
         vertices.push_back(0.0f);
     }
 
+
     vertexCount =
-        static_cast<int>(vertices.size() / 3);
+        static_cast<int>(
+            vertices.size() / 3
+        );
 
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    glGenVertexArrays(
+        1,
+        &VAO
+    );
+
+    glGenBuffers(
+        1,
+        &VBO
+    );
+
 
     glBindVertexArray(VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(
+        GL_ARRAY_BUFFER,
+        VBO
+    );
+
 
     glBufferData(
         GL_ARRAY_BUFFER,
@@ -65,16 +93,23 @@ void CircleRenderer::createCircle()
         GL_STATIC_DRAW
     );
 
+
     glVertexAttribPointer(
         0,
         3,
         GL_FLOAT,
         GL_FALSE,
         3 * sizeof(float),
-        (void*)0
+        nullptr
     );
 
     glEnableVertexAttribArray(0);
+
+
+    glBindBuffer(
+        GL_ARRAY_BUFFER,
+        0
+    );
 
     glBindVertexArray(0);
 }
@@ -82,40 +117,46 @@ void CircleRenderer::createCircle()
 
 void CircleRenderer::draw(
     const Circle& circle,
-    const Shader& shader
+    const Shader& shader,
+    const glm::mat4& cameraMatrix
 ) const
 {
     shader.use();
 
-    const glm::vec2& position =
-        circle.getPosition();
-
-    const glm::vec3& color =
-        circle.getColor();
-
-    const float radius =
-        circle.getRadius();
 
     shader.setVec2(
         "uPosition",
-        position
+        circle.getPosition()
     );
+
 
     shader.setFloat(
         "uRadius",
-        radius
+        circle.getRadius()
     );
+
 
     shader.setVec3(
         "uColor",
-        color
+        circle.getColor()
     );
 
+
+    shader.setMat4(
+        "uCamera",
+        cameraMatrix
+    );
+
+
     glBindVertexArray(VAO);
+
 
     glDrawArrays(
         GL_TRIANGLE_FAN,
         0,
         vertexCount
     );
+
+
+    glBindVertexArray(0);
 }

@@ -5,14 +5,18 @@ layout (location = 0) in vec3 aPos;
 uniform vec2 uPosition;
 uniform float uRadius;
 
+uniform mat4 uCamera;
+
 void main()
 {
-    vec2 position =
+    vec2 worldPosition =
         uPosition + aPos.xy * uRadius;
 
-    gl_Position = vec4(
-        position,
-        0.0,
-        1.0
-    );
+    gl_Position =
+        uCamera *
+        vec4(
+            worldPosition,
+            0.0,
+            1.0
+        );
 }
