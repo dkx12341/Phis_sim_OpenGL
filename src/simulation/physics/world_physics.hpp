@@ -6,6 +6,7 @@
 
 #include "../objects/circle/circle.hpp"
 #include "spatial/quadtree.hpp"
+#include "collision/collision_solver.hpp"
 
 class WorldPhysics
 {
@@ -31,6 +32,7 @@ private:
     std::vector<Circle*> circles;
 
     QuadTree spatialTree;
+    CollisionSolver collisionSolver;
 
     void applyGravity(Circle& circle);
 

@@ -65,6 +65,8 @@ private:
     int maxObjectsPerNode;
     int maxDepth;
 
+    float maxCircleRadius;
+
 
     void insert(
         Node* node,

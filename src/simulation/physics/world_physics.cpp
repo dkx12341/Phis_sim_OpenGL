@@ -35,6 +35,7 @@ void WorldPhysics::update(
     float deltaTime
 )
 {
+    // 1. Fizyka ruchu
     for (Circle* circle : circles)
     {
         applyGravity(*circle);
@@ -44,14 +45,22 @@ void WorldPhysics::update(
         handleBounds(*circle);
     }
 
+
+    // 2. Zbudowanie QuadTree
     spatialTree.clear();
 
     for (Circle* circle : circles)
     {
         spatialTree.insert(*circle);
     }
-}
 
+
+    // 3. Kolizje
+    collisionSolver.solve(
+        circles,
+        spatialTree
+    );
+}
 
 void WorldPhysics::applyGravity(
     Circle& circle

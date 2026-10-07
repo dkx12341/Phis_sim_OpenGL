@@ -27,6 +27,13 @@ add_executable(PhysicsSimulation
 
     src/simulation/physics/world_physics.hpp
     src/simulation/physics/world_physics.cpp
+    
+    src/simulation/physics/spatial/quadtree.hpp
+    src/simulation/physics/spatial/quadtree.cpp
+
+    src/simulation/physics/collision/collision_solver.hpp
+    src/simulation/physics/collision/collision_solver.cpp
+
 
     src/camera/camera.hpp
     src/camera/camera.cpp

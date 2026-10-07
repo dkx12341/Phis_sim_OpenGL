@@ -1,5 +1,8 @@
 #include "quadtree.hpp"
 
+#include <algorithm>
+#include <utility>
+
 
 QuadTree::QuadTree(
     const glm::vec2& minBounds,
@@ -17,7 +20,8 @@ QuadTree::QuadTree(
       minBounds(minBounds),
       maxBounds(maxBounds),
       maxObjectsPerNode(maxObjectsPerNode),
-      maxDepth(maxDepth)
+      maxDepth(maxDepth),
+      maxCircleRadius(0.0f)
 {
 }
 
@@ -68,11 +72,20 @@ void QuadTree::clear()
         maxBounds,
         0
     );
+
+    maxCircleRadius = 0.0f;
 }
 
-
-void QuadTree::insert(Circle& circle)
+void QuadTree::insert(
+    Circle& circle
+)
 {
+    maxCircleRadius =
+        std::max(
+            maxCircleRadius,
+            circle.getRadius()
+        );
+
     insert(
         root,
         circle
@@ -297,4 +310,104 @@ void QuadTree::subdivide(Node* node)
 
             node->depth + 1
         );
+}
+
+
+std::vector<Circle*> QuadTree::query(
+    const Circle& circle
+) const
+{
+    std::vector<Circle*> result;
+
+    const glm::vec2 position =
+        circle.getPosition();
+
+
+    const float searchRadius =
+        circle.getRadius()
+        + maxCircleRadius;
+
+
+    const glm::vec2 queryMin =
+        position
+        - glm::vec2(searchRadius);
+
+
+    const glm::vec2 queryMax =
+        position
+        + glm::vec2(searchRadius);
+
+
+    query(
+        root,
+        queryMin,
+        queryMax,
+        result
+    );
+
+
+    return result;
+}
+
+
+void QuadTree::query(
+    const Node* node,
+    const glm::vec2& queryMin,
+    const glm::vec2& queryMax,
+    std::vector<Circle*>& result
+) const
+{
+    if (!overlaps(
+        node,
+        queryMin,
+        queryMax
+    ))
+    {
+        return;
+    }
+
+
+    // Obiekty znajdujące się bezpośrednio
+    // w tym node.
+
+    for (Circle* circle : node->circles)
+    {
+        result.push_back(circle);
+    }
+
+
+    // Jeżeli jesteśmy w liściu,
+    // nie ma już czego przeszukiwać.
+
+    if (node->isLeaf())
+    {
+        return;
+    }
+
+
+    // Przeszukujemy dzieci,
+    // których obszar przecina query.
+
+    for (int i = 0; i < 4; ++i)
+    {
+        query(
+            node->children[i],
+            queryMin,
+            queryMax,
+            result
+        );
+    }
+}
+
+bool QuadTree::overlaps(
+    const Node* node,
+    const glm::vec2& queryMin,
+    const glm::vec2& queryMax
+) const
+{
+    return
+        node->maxBounds.x >= queryMin.x &&
+        node->minBounds.x <= queryMax.x &&
+        node->maxBounds.y >= queryMin.y &&
+        node->minBounds.y <= queryMax.y;
 }
