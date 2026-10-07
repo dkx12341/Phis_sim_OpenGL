@@ -1,0 +1,300 @@
+#include "quadtree.hpp"
+
+
+QuadTree::QuadTree(
+    const glm::vec2& minBounds,
+    const glm::vec2& maxBounds,
+    int maxObjectsPerNode,
+    int maxDepth
+)
+    : root(
+        new Node(
+            minBounds,
+            maxBounds,
+            0
+        )
+    ),
+      minBounds(minBounds),
+      maxBounds(maxBounds),
+      maxObjectsPerNode(maxObjectsPerNode),
+      maxDepth(maxDepth)
+{
+}
+
+
+QuadTree::~QuadTree()
+{
+    delete root;
+}
+
+
+QuadTree::Node::Node(
+    const glm::vec2& minBounds,
+    const glm::vec2& maxBounds,
+    int depth
+)
+    : minBounds(minBounds),
+      maxBounds(maxBounds),
+      depth(depth)
+{
+    children[0] = nullptr;
+    children[1] = nullptr;
+    children[2] = nullptr;
+    children[3] = nullptr;
+}
+
+
+QuadTree::Node::~Node()
+{
+    delete children[0];
+    delete children[1];
+    delete children[2];
+    delete children[3];
+}
+
+
+bool QuadTree::Node::isLeaf() const
+{
+    return children[0] == nullptr;
+}
+
+
+void QuadTree::clear()
+{
+    delete root;
+
+    root = new Node(
+        minBounds,
+        maxBounds,
+        0
+    );
+}
+
+
+void QuadTree::insert(Circle& circle)
+{
+    insert(
+        root,
+        circle
+    );
+}
+
+
+void QuadTree::insert(
+    Node* node,
+    Circle& circle
+)
+{
+    if (!contains(node, circle))
+    {
+        return;
+    }
+
+
+    // Jeżeli jesteśmy w liściu i mamy jeszcze miejsce,
+    // dodajemy obiekt bez dzielenia noda.
+
+    if (
+        node->isLeaf() &&
+        (
+            node->circles.size()
+            < static_cast<size_t>(maxObjectsPerNode)
+            ||
+            node->depth >= maxDepth
+        )
+    )
+    {
+        node->circles.push_back(&circle);
+
+        return;
+    }
+
+
+    // Jeżeli node jest liściem, ale jest pełny,
+    // dzielimy go na cztery części.
+
+    if (node->isLeaf())
+    {
+        subdivide(node);
+
+
+        // Przenosimy istniejące obiekty
+        // do odpowiednich dzieci.
+
+        std::vector<Circle*> oldCircles =
+            std::move(node->circles);
+
+        node->circles.clear();
+
+
+        for (Circle* oldCircle : oldCircles)
+        {
+            bool inserted = false;
+
+
+            for (int i = 0; i < 4; ++i)
+            {
+                if (
+                    contains(
+                        node->children[i],
+                        *oldCircle
+                    )
+                )
+                {
+                    insert(
+                        node->children[i],
+                        *oldCircle
+                    );
+
+                    inserted = true;
+
+                    break;
+                }
+            }
+
+
+            // Jeżeli koło nie mieści się całkowicie
+            // w żadnym dziecku, zostaje w obecnym node.
+
+            if (!inserted)
+            {
+                node->circles.push_back(
+                    oldCircle
+                );
+            }
+        }
+    }
+
+
+    // Próbujemy umieścić nowy obiekt
+    // w jednym z czterech dzieci.
+
+    for (int i = 0; i < 4; ++i)
+    {
+        if (
+            contains(
+                node->children[i],
+                circle
+            )
+        )
+        {
+            insert(
+                node->children[i],
+                circle
+            );
+
+            return;
+        }
+    }
+
+
+    // Jeżeli koło przecina granice wszystkich dzieci,
+    // pozostaje w obecnym node.
+
+    node->circles.push_back(&circle);
+}
+
+
+bool QuadTree::contains(
+    const Node* node,
+    const Circle& circle
+) const
+{
+    const glm::vec2 position =
+        circle.getPosition();
+
+    const float radius =
+        circle.getRadius();
+
+
+    return
+        position.x - radius >= node->minBounds.x &&
+        position.x + radius <= node->maxBounds.x &&
+        position.y - radius >= node->minBounds.y &&
+        position.y + radius <= node->maxBounds.y;
+}
+
+
+void QuadTree::subdivide(Node* node)
+{
+    const glm::vec2 center =
+        (node->minBounds + node->maxBounds)
+        * 0.5f;
+
+
+    // Dolny-lewy
+    //
+    // 2 ─────── 3
+    // │         │
+    // │         │
+    // 0 ─────── 1
+
+    node->children[0] =
+        new Node(
+            glm::vec2(
+                node->minBounds.x,
+                node->minBounds.y
+            ),
+
+            glm::vec2(
+                center.x,
+                center.y
+            ),
+
+            node->depth + 1
+        );
+
+
+    // Dolny-prawy
+
+    node->children[1] =
+        new Node(
+            glm::vec2(
+                center.x,
+                node->minBounds.y
+            ),
+
+            glm::vec2(
+                node->maxBounds.x,
+                center.y
+            ),
+
+            node->depth + 1
+        );
+
+
+    // Górny-lewy
+
+    node->children[2] =
+        new Node(
+            glm::vec2(
+                node->minBounds.x,
+                center.y
+            ),
+
+            glm::vec2(
+                center.x,
+                node->maxBounds.y
+            ),
+
+            node->depth + 1
+        );
+
+
+    // Górny-prawy
+
+    node->children[3] =
+        new Node(
+            glm::vec2(
+                center.x,
+                center.y
+            ),
+
+            glm::vec2(
+                node->maxBounds.x,
+                node->maxBounds.y
+            ),
+
+            node->depth + 1
+        );
+}

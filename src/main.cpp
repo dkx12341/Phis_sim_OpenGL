@@ -79,7 +79,7 @@ int main()
     );
 
 
-    Simulation simulation;
+    Simulation simulation;  //Bajo jajo
 
 
     CircleRenderer renderer;

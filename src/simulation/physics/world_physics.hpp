@@ -5,7 +5,7 @@
 #include <glm/vec2.hpp>
 
 #include "../objects/circle/circle.hpp"
-
+#include "spatial/quadtree.hpp"
 
 class WorldPhysics
 {
@@ -29,6 +29,8 @@ private:
     glm::vec2 maxBounds;
 
     std::vector<Circle*> circles;
+
+    QuadTree spatialTree;
 
     void applyGravity(Circle& circle);
 

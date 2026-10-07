@@ -10,7 +10,11 @@ WorldPhysics::WorldPhysics(
 )
     : gravity(gravity),
       minBounds(minBounds),
-      maxBounds(maxBounds)
+      maxBounds(maxBounds),
+      spatialTree(
+          minBounds,
+          maxBounds
+      )
 {
 }
 
@@ -38,6 +42,13 @@ void WorldPhysics::update(
         circle->update(deltaTime);
 
         handleBounds(*circle);
+    }
+
+    spatialTree.clear();
+
+    for (Circle* circle : circles)
+    {
+        spatialTree.insert(*circle);
     }
 }
 
