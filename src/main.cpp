@@ -80,8 +80,6 @@ int main()
 
 
     Simulation simulation;  //Bajo jajo
-
-
     CircleRenderer renderer;
 
 

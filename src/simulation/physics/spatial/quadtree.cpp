@@ -76,6 +76,7 @@ void QuadTree::clear()
     maxCircleRadius = 0.0f;
 }
 
+
 void QuadTree::insert(
     Circle& circle
 )
@@ -104,7 +105,7 @@ void QuadTree::insert(
     }
 
 
-    // Jeżeli jesteśmy w liściu i mamy jeszcze miejsce,
+    // Jeżeli jesteśmy w liściu i mamy miejsce,
     // dodajemy obiekt bez dzielenia noda.
 
     if (
@@ -123,8 +124,8 @@ void QuadTree::insert(
     }
 
 
-    // Jeżeli node jest liściem, ale jest pełny,
-    // dzielimy go na cztery części.
+    // Node jest liściem, ale jest pełny.
+    // Dzielimy go na cztery części.
 
     if (node->isLeaf())
     {
@@ -201,10 +202,12 @@ void QuadTree::insert(
     }
 
 
-    // Jeżeli koło przecina granice wszystkich dzieci,
-    // pozostaje w obecnym node.
+    // Koło przecina granice kilku dzieci,
+    // więc zostaje w obecnym node.
 
-    node->circles.push_back(&circle);
+    node->circles.push_back(
+        &circle
+    );
 }
 
 
@@ -235,12 +238,9 @@ void QuadTree::subdivide(Node* node)
         * 0.5f;
 
 
+    // ---------------------------------
     // Dolny-lewy
-    //
-    // 2 ─────── 3
-    // │         │
-    // │         │
-    // 0 ─────── 1
+    // ---------------------------------
 
     node->children[0] =
         new Node(
@@ -258,7 +258,9 @@ void QuadTree::subdivide(Node* node)
         );
 
 
+    // ---------------------------------
     // Dolny-prawy
+    // ---------------------------------
 
     node->children[1] =
         new Node(
@@ -276,7 +278,9 @@ void QuadTree::subdivide(Node* node)
         );
 
 
+    // ---------------------------------
     // Górny-lewy
+    // ---------------------------------
 
     node->children[2] =
         new Node(
@@ -294,7 +298,9 @@ void QuadTree::subdivide(Node* node)
         );
 
 
+    // ---------------------------------
     // Górny-prawy
+    // ---------------------------------
 
     node->children[3] =
         new Node(
@@ -313,15 +319,21 @@ void QuadTree::subdivide(Node* node)
 }
 
 
-std::vector<Circle*> QuadTree::query(
-    const Circle& circle
+void QuadTree::query(
+    const Circle& circle,
+    std::vector<Circle*>& result
 ) const
 {
-    std::vector<Circle*> result;
-
     const glm::vec2 position =
         circle.getPosition();
 
+
+    // Szukamy wszystkich obiektów,
+    // które potencjalnie mogą być wystarczająco blisko.
+    //
+    // maxCircleRadius pozwala nam odrzucić
+    // dużą część QuadTree bez dokładnego testu
+    // każdej pary.
 
     const float searchRadius =
         circle.getRadius()
@@ -344,9 +356,6 @@ std::vector<Circle*> QuadTree::query(
         queryMax,
         result
     );
-
-
-    return result;
 }
 
 
@@ -357,18 +366,23 @@ void QuadTree::query(
     std::vector<Circle*>& result
 ) const
 {
-    if (!overlaps(
-        node,
-        queryMin,
-        queryMax
-    ))
+    // Ten node nie przecina obszaru zapytania.
+    // Nie musimy schodzić niżej.
+
+    if (
+        !overlaps(
+            node,
+            queryMin,
+            queryMax
+        )
+    )
     {
         return;
     }
 
 
-    // Obiekty znajdujące się bezpośrednio
-    // w tym node.
+    // Dodajemy obiekty znajdujące się
+    // bezpośrednio w tym node.
 
     for (Circle* circle : node->circles)
     {
@@ -376,8 +390,7 @@ void QuadTree::query(
     }
 
 
-    // Jeżeli jesteśmy w liściu,
-    // nie ma już czego przeszukiwać.
+    // Brak dzieci.
 
     if (node->isLeaf())
     {
@@ -398,6 +411,7 @@ void QuadTree::query(
         );
     }
 }
+
 
 bool QuadTree::overlaps(
     const Node* node,

@@ -25,8 +25,9 @@ public:
 
     void insert(Circle& circle);
 
-    std::vector<Circle*> query(
-        const Circle& circle
+    void query(
+        const Circle& circle,
+        std::vector<Circle*>& result
     ) const;
 
 

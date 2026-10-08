@@ -9,7 +9,7 @@
 
 Simulation::Simulation()
     : worldPhysics(
-        glm::vec2(0.0f, -9.81f),
+        glm::vec2(0.0f, 0.0f),
         glm::vec2(-60.0f, -60.0f),
         glm::vec2(60.0f, 60.0f)
     )
@@ -17,13 +17,13 @@ Simulation::Simulation()
   srand(static_cast<unsigned int>(time(nullptr)));
 
     glm::vec2 worldSize = Simulation::worldPhysics.getMaxBounds();
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 300; ++i)
     {
         auto circle =
             std::make_unique<Circle>(
-                1.0f,
                 0.5f,
-                0.80f
+                0.7f,
+                0.9f
             );
 
         circle->setVelocity(

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 
 #include <glm/geometric.hpp>
 
@@ -11,15 +12,49 @@ void CollisionSolver::solve(
     const QuadTree& spatialTree
 )
 {
+    // Bufor kandydatów jest tworzony tylko raz.
+    // Nie alokujemy nowego vectora dla każdego koła.
+    std::vector<Circle*> candidates;
+    candidates.reserve(64);
+
+
     for (Circle* circle : circles)
     {
-        std::vector<Circle*> candidates =
-            spatialTree.query(*circle);
+        candidates.clear();
+
+        spatialTree.query(
+            *circle,
+            candidates
+        );
 
 
         for (Circle* candidate : candidates)
         {
+            // Nie kolidujemy obiektu z samym sobą.
             if (candidate == circle)
+            {
+                continue;
+            }
+
+
+            // Każdą parę rozwiązujemy tylko raz.
+            //
+            // Jeśli mamy:
+            //
+            // A -> B
+            //
+            // to później:
+            //
+            // B -> A
+            //
+            // zostanie pominięte.
+
+            if (
+                !std::less<Circle*>{}(
+                    circle,
+                    candidate
+                )
+            )
             {
                 continue;
             }
@@ -53,6 +88,8 @@ void CollisionSolver::resolveCollision(
         b.getRadius();
 
 
+    // Wektor od A do B.
+
     const glm::vec2 delta =
         positionB - positionA;
 
@@ -68,6 +105,8 @@ void CollisionSolver::resolveCollision(
         );
 
 
+    // Brak kolizji.
+
     if (
         distanceSquared >=
         radiusSum * radiusSum
@@ -76,6 +115,13 @@ void CollisionSolver::resolveCollision(
         return;
     }
 
+
+    // Środki są praktycznie w tym samym miejscu.
+    //
+    // Nie możemy wtedy bezpiecznie znormalizować delta.
+    //
+    // Docelowo można tutaj obsłużyć ten przypadek
+    // losową/stabilną normalną.
 
     if (distanceSquared <= 0.000001f)
     {
@@ -94,6 +140,10 @@ void CollisionSolver::resolveCollision(
     const float penetration =
         radiusSum - distance;
 
+
+    // ---------------------------------
+    // Inverse mass
+    // ---------------------------------
 
     const float inverseMassA =
         1.0f / a.getMass();
@@ -143,7 +193,10 @@ void CollisionSolver::resolveCollision(
         );
 
 
-    // Obiekty już się oddalają.
+    // Obiekty już się od siebie oddalają.
+    //
+    // Korekcja pozycji została wykonana wyżej,
+    // ale nie dokładamy kolejnego impulsu.
 
     if (velocityAlongNormal > 0.0f)
     {
@@ -152,7 +205,7 @@ void CollisionSolver::resolveCollision(
 
 
     // ---------------------------------
-    // Impulse
+    // Restitution
     // ---------------------------------
 
     const float restitution =
@@ -161,6 +214,10 @@ void CollisionSolver::resolveCollision(
             b.getRestitution()
         );
 
+
+    // ---------------------------------
+    // Collision impulse
+    // ---------------------------------
 
     const float impulseMagnitude =
         -(1.0f + restitution)
@@ -172,11 +229,15 @@ void CollisionSolver::resolveCollision(
         impulseMagnitude * normal;
 
 
+    // A dostaje impuls w przeciwną stronę.
+
     a.setVelocity(
         a.getVelocity()
         - impulse * inverseMassA
     );
 
+
+    // B dostaje impuls w stronę normalnej.
 
     b.setVelocity(
         b.getVelocity()
