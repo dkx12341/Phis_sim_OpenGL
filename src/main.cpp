@@ -11,14 +11,13 @@
 
 #include "renderer/shader.hpp"
 #include "renderer/circle_renderer.hpp"
+#include "renderer/ship_renderer.hpp"
 
 #include "simulation/simulation.hpp"
 
 
 GLFWwindow* initializeWindow();
-
 bool initializeOpenGL();
-
 
 void processInput(
     GLFWwindow* window,
@@ -26,51 +25,42 @@ void processInput(
     float deltaTime
 );
 
-
 void handleCameraMovement(
     GLFWwindow* window,
     Camera& camera,
     float deltaTime
 );
 
-
 void render(
-    CircleRenderer& renderer,
+    CircleRenderer& circleRenderer,
+    ShipRenderer& shipRenderer,
     const Simulation& simulation,
     Shader& shader,
     Camera& camera
 );
 
-
-void cleanup(
-    GLFWwindow* window
-);
+void cleanup(GLFWwindow* window);
 
 
 int main()
 {
-    GLFWwindow* window =
-        initializeWindow();
+    GLFWwindow* window = initializeWindow();
 
     if (!window)
     {
         return -1;
     }
 
-
     if (!initializeOpenGL())
     {
         cleanup(window);
-
         return -1;
     }
-
 
     Shader shader(
         "shaders/basic.vert",
         "shaders/basic.frag"
     );
-
 
     Camera camera(
         glm::vec2(0.0f, 0.0f),
@@ -78,33 +68,24 @@ int main()
         120.0f
     );
 
+    Simulation simulation;
 
-    Simulation simulation;  //Bajo jajo
-    CircleRenderer renderer;
+    CircleRenderer circleRenderer;
+    ShipRenderer shipRenderer;
 
-
-    double lastTime =
-        glfwGetTime();
-
+    double lastTime = glfwGetTime();
 
     while (!glfwWindowShouldClose(window))
     {
-        const double currentTime =
-            glfwGetTime();
+        const double currentTime = glfwGetTime();
 
+        const float deltaTime = static_cast<float>(
+            currentTime - lastTime
+        );
 
-        const float deltaTime =
-            static_cast<float>(
-                currentTime - lastTime
-            );
-
-
-        lastTime =
-            currentTime;
-
+        lastTime = currentTime;
 
         glfwPollEvents();
-
 
         processInput(
             window,
@@ -112,23 +93,18 @@ int main()
             deltaTime
         );
 
-
-        simulation.update(
-            deltaTime
-        );
-
+        simulation.update(deltaTime);
 
         render(
-            renderer,
+            circleRenderer,
+            shipRenderer,
             simulation,
             shader,
             camera
         );
 
-
         glfwSwapBuffers(window);
     }
-
 
     cleanup(window);
 
@@ -140,12 +116,9 @@ GLFWwindow* initializeWindow()
 {
     if (!glfwInit())
     {
-        std::cerr
-            << "Failed to initialize GLFW\n";
-
+        std::cerr << "Failed to initialize GLFW\n";
         return nullptr;
     }
-
 
     glfwWindowHint(
         GLFW_CONTEXT_VERSION_MAJOR,
@@ -162,30 +135,22 @@ GLFWwindow* initializeWindow()
         GLFW_OPENGL_CORE_PROFILE
     );
 
-
-    GLFWwindow* window =
-        glfwCreateWindow(
-            720,
-            720,
-            "Physics Simulation",
-            nullptr,
-            nullptr
-        );
-
+    GLFWwindow* window = glfwCreateWindow(
+        720,
+        720,
+        "Physics Simulation",
+        nullptr,
+        nullptr
+    );
 
     if (!window)
     {
-        std::cerr
-            << "Failed to create GLFW window\n";
-
+        std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
-
         return nullptr;
     }
 
-
     glfwMakeContextCurrent(window);
-
 
     return window;
 }
@@ -198,22 +163,15 @@ bool initializeOpenGL()
             glfwGetProcAddress
         )))
     {
-        std::cerr
-            << "Failed to initialize GLAD\n";
-
+        std::cerr << "Failed to initialize GLAD\n";
         return false;
     }
 
+    std::cout << "OpenGL initialized!\n";
 
-    std::cout
-        << "OpenGL initialized!\n";
-
-
-    std::cout
-        << "Renderer: "
-        << glGetString(GL_RENDERER)
-        << '\n';
-
+    std::cout << "Renderer: "
+              << glGetString(GL_RENDERER)
+              << '\n';
 
     return true;
 }
@@ -242,100 +200,53 @@ void handleCameraMovement(
     const float cameraSpeed = 5.0f;
     const float zoomSpeed = 1.0f;
 
-
-    if (
-        glfwGetKey(
-            window,
-            GLFW_KEY_W
-        ) == GLFW_PRESS
-    )
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        camera.move(
-            glm::vec2(
-                0.0f,
-                cameraSpeed * deltaTime
-            )
-        );
+        camera.move(glm::vec2(
+            0.0f,
+            cameraSpeed * deltaTime
+        ));
     }
 
-
-    if (
-        glfwGetKey(
-            window,
-            GLFW_KEY_S
-        ) == GLFW_PRESS
-    )
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        camera.move(
-            glm::vec2(
-                0.0f,
-                -cameraSpeed * deltaTime
-            )
-        );
+        camera.move(glm::vec2(
+            0.0f,
+            -cameraSpeed * deltaTime
+        ));
     }
 
-
-    if (
-        glfwGetKey(
-            window,
-            GLFW_KEY_A
-        ) == GLFW_PRESS
-    )
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        camera.move(
-            glm::vec2(
-                -cameraSpeed * deltaTime,
-                0.0f
-            )
-        );
+        camera.move(glm::vec2(
+            -cameraSpeed * deltaTime,
+            0.0f
+        ));
     }
 
-
-    if (
-        glfwGetKey(
-            window,
-            GLFW_KEY_D
-        ) == GLFW_PRESS
-    )
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        camera.move(
-            glm::vec2(
-                cameraSpeed * deltaTime,
-                0.0f
-            )
-        );
+        camera.move(glm::vec2(
+            cameraSpeed * deltaTime,
+            0.0f
+        ));
     }
 
-
-    if (
-        glfwGetKey(
-            window,
-            GLFW_KEY_Q
-        ) == GLFW_PRESS
-    )
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        camera.zoom(
-            zoomSpeed * deltaTime
-        );
+        camera.zoom(zoomSpeed * deltaTime);
     }
 
-
-    if (
-        glfwGetKey(
-            window,
-            GLFW_KEY_E
-        ) == GLFW_PRESS
-    )
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        camera.zoom(
-            -zoomSpeed * deltaTime
-        );
+        camera.zoom(-zoomSpeed * deltaTime);
     }
 }
 
 
 void render(
-    CircleRenderer& renderer,
+    CircleRenderer& circleRenderer,
+    ShipRenderer& shipRenderer,
     const Simulation& simulation,
     Shader& shader,
     Camera& camera
@@ -348,70 +259,44 @@ void render(
         1.0f
     );
 
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    glClear(
-        GL_COLOR_BUFFER_BIT
+    const glm::vec2& cameraPosition = camera.getPosition();
+
+    const float cameraWidth = camera.getWidth();
+    const float cameraHeight = camera.getHeight();
+    const float cameraZoom = camera.getZoom();
+
+    const glm::mat4 cameraMatrix = glm::ortho(
+        cameraPosition.x - cameraWidth / (2.0f * cameraZoom),
+        cameraPosition.x + cameraWidth / (2.0f * cameraZoom),
+        cameraPosition.y - cameraHeight / (2.0f * cameraZoom),
+        cameraPosition.y + cameraHeight / (2.0f * cameraZoom),
+        -1.0f,
+        1.0f
     );
 
-
-    const glm::vec2& cameraPosition =
-        camera.getPosition();
-
-
-    const float cameraWidth =
-        camera.getWidth();
-
-
-    const float cameraHeight =
-        camera.getHeight();
-
-
-    const float cameraZoom =
-        camera.getZoom();
-
-
-    const glm::mat4 cameraMatrix =
-        glm::ortho(
-            cameraPosition.x -
-                cameraWidth /
-                (2.0f * cameraZoom),
-
-            cameraPosition.x +
-                cameraWidth /
-                (2.0f * cameraZoom),
-
-            cameraPosition.y -
-                cameraHeight /
-                (2.0f * cameraZoom),
-
-            cameraPosition.y +
-                cameraHeight /
-                (2.0f * cameraZoom),
-
-            -1.0f,
-            1.0f
-        );
-
-
-    for (
-        const auto& circle :
-        simulation.getCircles()
-    )
+    // Rysowanie kółek.
+    for (const auto& circle : simulation.getCircles())
     {
-        renderer.draw(
+        circleRenderer.draw(
             *circle,
             shader,
             cameraMatrix
         );
     }
+
+    // Rysowanie statku na wierzchu kółek.
+    shipRenderer.draw(
+        simulation.getPlayerShip(),
+        shader,
+        cameraMatrix
+    );
 }
 
 
-void cleanup(
-    GLFWwindow* window
-)
+void cleanup(GLFWwindow* window)
 {
     glfwDestroyWindow(window);
-
     glfwTerminate();
 }

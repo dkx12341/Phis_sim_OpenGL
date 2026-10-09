@@ -123,40 +123,38 @@ void CircleRenderer::draw(
 {
     shader.use();
 
-
     shader.setVec2(
         "uPosition",
         circle.getPosition()
     );
-
 
     shader.setFloat(
         "uRadius",
         circle.getRadius()
     );
 
+    shader.setFloat(
+        "uRotation",
+        circle.getRotation()
+    );
 
     shader.setVec3(
         "uColor",
         circle.getColor()
     );
 
-
     shader.setMat4(
         "uCamera",
         cameraMatrix
     );
 
-
     glBindVertexArray(VAO);
-
 
     glDrawArrays(
         GL_TRIANGLE_FAN,
         0,
         vertexCount
     );
-
 
     glBindVertexArray(0);
 }

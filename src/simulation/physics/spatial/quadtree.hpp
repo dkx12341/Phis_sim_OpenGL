@@ -30,6 +30,12 @@ public:
         std::vector<Circle*>& result
     ) const;
 
+    void query(
+        const glm::vec2& position,
+        float radius,
+        std::vector<Circle*>& result
+    ) const;
+
 
 private:
 

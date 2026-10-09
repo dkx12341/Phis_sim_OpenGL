@@ -1,7 +1,5 @@
 #include "circle.hpp"
 
-#include <cmath>
-
 Circle::Circle(
     float mass,
     float radius,
@@ -10,6 +8,7 @@ Circle::Circle(
     : mass(mass),
       radius(radius),
       restitution(restitution),
+      rotation(0.0f),
       position(0.0f, 0.0f),
       velocity(0.0f, 0.0f),
       acceleration(0.0f, 0.0f),
@@ -33,12 +32,10 @@ void Circle::applyForce(const glm::vec2& force)
 void Circle::update(float deltaTime)
 {
     velocity += acceleration * deltaTime;
-
     position += velocity * deltaTime;
 
     acceleration = glm::vec2(0.0f, 0.0f);
 }
-
 
 float Circle::getRadius() const
 {
@@ -53,6 +50,11 @@ float Circle::getMass() const
 float Circle::getRestitution() const
 {
     return restitution;
+}
+
+float Circle::getRotation() const
+{
+    return rotation;
 }
 
 const glm::vec2& Circle::getPosition() const
@@ -70,17 +72,22 @@ const glm::vec3& Circle::getColor() const
     return color;
 }
 
-void Circle::setPosition(
-    const glm::vec2& position
-)
+float Circle::getCollisionRadius() const
+{
+    return radius;
+}
+
+void Circle::setPosition(const glm::vec2& position)
 {
     this->position = position;
 }
 
-
-void Circle::setVelocity(
-    const glm::vec2& velocity
-)
+void Circle::setVelocity(const glm::vec2& velocity)
 {
     this->velocity = velocity;
+}
+
+void Circle::setRotation(float rotation)
+{
+    this->rotation = rotation;
 }

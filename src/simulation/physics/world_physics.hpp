@@ -5,6 +5,7 @@
 #include <glm/vec2.hpp>
 
 #include "../objects/circle/circle.hpp"
+#include "../objects/ship/ship.hpp"
 #include "spatial/quadtree.hpp"
 #include "collision/collision_solver.hpp"
 
@@ -19,13 +20,15 @@ public:
 
     void addCircle(Circle& circle);
 
-    void update(float deltaTime);
+    void update(
+        float deltaTime,
+        Ship& ship
+    );
 
     glm::vec2 getMaxBounds() const;
 
 private:
     glm::vec2 gravity;
-
     glm::vec2 minBounds;
     glm::vec2 maxBounds;
 
@@ -35,6 +38,8 @@ private:
     CollisionSolver collisionSolver;
 
     void applyGravity(Circle& circle);
+    void applyGravity(Ship& ship);
 
     void handleBounds(Circle& circle);
+    void handleBounds(Ship& ship);
 };

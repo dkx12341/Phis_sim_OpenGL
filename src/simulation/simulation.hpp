@@ -6,6 +6,8 @@
 #include "objects/circle/circle.hpp"
 #include "physics/world_physics.hpp"
 
+#include "objects/ship/ship.hpp"
+
 
 class Simulation
 {
@@ -18,9 +20,13 @@ public:
     const std::vector<std::unique_ptr<Circle>>&
     getCircles() const;
 
+    Ship& getPlayerShip();
+    const Ship& getPlayerShip() const;
+
 
 private:
 
+    Ship playerShip;
     WorldPhysics worldPhysics;
 
     std::vector<std::unique_ptr<Circle>> circles;

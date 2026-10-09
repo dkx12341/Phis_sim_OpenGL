@@ -6,18 +6,115 @@
 
 #include <glm/geometric.hpp>
 
+namespace
+{
+    template<typename BodyA, typename BodyB>
+    void resolveBodies(
+        BodyA& a,
+        BodyB& b
+    )
+    {
+        const glm::vec2 delta =
+            b.getPosition() - a.getPosition();
+
+        const float radiusSum =
+            a.getCollisionRadius() + b.getCollisionRadius();
+
+        const float distanceSquared =
+            glm::dot(delta, delta);
+
+        if (distanceSquared >= radiusSum * radiusSum)
+        {
+            return;
+        }
+
+        // Przypadek pokrywających się środków.
+        // W tej sytuacji normalna nie jest określona.
+        if (distanceSquared <= 0.000001f)
+        {
+            return;
+        }
+
+        const float distance =
+            std::sqrt(distanceSquared);
+
+        const glm::vec2 normal =
+            delta / distance;
+
+        const float penetration =
+            radiusSum - distance;
+
+        const float inverseMassA =
+            1.0f / a.getMass();
+
+        const float inverseMassB =
+            1.0f / b.getMass();
+
+        const float inverseMassSum =
+            inverseMassA + inverseMassB;
+
+        // Korekcja pozycji rozdzielająca ciała.
+        const glm::vec2 correction =
+            normal * (penetration / inverseMassSum);
+
+        a.setPosition(
+            a.getPosition()
+            - correction * inverseMassA
+        );
+
+        b.setPosition(
+            b.getPosition()
+            + correction * inverseMassB
+        );
+
+        const glm::vec2 relativeVelocity =
+            b.getVelocity() - a.getVelocity();
+
+        const float velocityAlongNormal =
+            glm::dot(relativeVelocity, normal);
+
+        // Ciała już się od siebie oddalają.
+        if (velocityAlongNormal > 0.0f)
+        {
+            return;
+        }
+
+        const float restitution =
+            std::min(
+                a.getRestitution(),
+                b.getRestitution()
+            );
+
+        const float impulseMagnitude =
+            -(1.0f + restitution)
+            * velocityAlongNormal
+            / inverseMassSum;
+
+        const glm::vec2 impulse =
+            impulseMagnitude * normal;
+
+        a.setVelocity(
+            a.getVelocity()
+            - impulse * inverseMassA
+        );
+
+        b.setVelocity(
+            b.getVelocity()
+            + impulse * inverseMassB
+        );
+    }
+}
 
 void CollisionSolver::solve(
     std::vector<Circle*>& circles,
-    const QuadTree& spatialTree
+    const QuadTree& spatialTree,
+    Ship& ship
 )
 {
-    // Bufor kandydatów jest tworzony tylko raz.
-    // Nie alokujemy nowego vectora dla każdego koła.
     std::vector<Circle*> candidates;
     candidates.reserve(64);
 
-
+    // 1. Kolizje koło–koło.
     for (Circle* circle : circles)
     {
         candidates.clear();
@@ -27,28 +124,14 @@ void CollisionSolver::solve(
             candidates
         );
 
-
         for (Circle* candidate : candidates)
         {
-            // Nie kolidujemy obiektu z samym sobą.
             if (candidate == circle)
             {
                 continue;
             }
 
-
             // Każdą parę rozwiązujemy tylko raz.
-            //
-            // Jeśli mamy:
-            //
-            // A -> B
-            //
-            // to później:
-            //
-            // B -> A
-            //
-            // zostanie pominięte.
-
             if (
                 !std::less<Circle*>{}(
                     circle,
@@ -59,188 +142,43 @@ void CollisionSolver::solve(
                 continue;
             }
 
-
             resolveCollision(
                 *circle,
                 *candidate
             );
         }
     }
-}
 
+    // 2. Kolizje statek–koło.
+    candidates.clear();
+
+    spatialTree.query(
+        ship.getPosition(),
+        ship.getCollisionRadius(),
+        candidates
+    );
+
+    for (Circle* circle : candidates)
+    {
+        resolveCollision(
+            ship,
+            *circle
+        );
+    }
+}
 
 void CollisionSolver::resolveCollision(
     Circle& a,
     Circle& b
 )
 {
-    const glm::vec2 positionA =
-        a.getPosition();
+    resolveBodies(a, b);
+}
 
-    const glm::vec2 positionB =
-        b.getPosition();
-
-
-    const float radiusA =
-        a.getRadius();
-
-    const float radiusB =
-        b.getRadius();
-
-
-    // Wektor od A do B.
-
-    const glm::vec2 delta =
-        positionB - positionA;
-
-
-    const float radiusSum =
-        radiusA + radiusB;
-
-
-    const float distanceSquared =
-        glm::dot(
-            delta,
-            delta
-        );
-
-
-    // Brak kolizji.
-
-    if (
-        distanceSquared >=
-        radiusSum * radiusSum
-    )
-    {
-        return;
-    }
-
-
-    // Środki są praktycznie w tym samym miejscu.
-    //
-    // Nie możemy wtedy bezpiecznie znormalizować delta.
-    //
-    // Docelowo można tutaj obsłużyć ten przypadek
-    // losową/stabilną normalną.
-
-    if (distanceSquared <= 0.000001f)
-    {
-        return;
-    }
-
-
-    const float distance =
-        std::sqrt(distanceSquared);
-
-
-    const glm::vec2 normal =
-        delta / distance;
-
-
-    const float penetration =
-        radiusSum - distance;
-
-
-    // ---------------------------------
-    // Inverse mass
-    // ---------------------------------
-
-    const float inverseMassA =
-        1.0f / a.getMass();
-
-    const float inverseMassB =
-        1.0f / b.getMass();
-
-
-    const float inverseMassSum =
-        inverseMassA + inverseMassB;
-
-
-    // ---------------------------------
-    // Position correction
-    // ---------------------------------
-
-    const glm::vec2 correction =
-        normal *
-        (penetration / inverseMassSum);
-
-
-    a.setPosition(
-        a.getPosition()
-        - correction * inverseMassA
-    );
-
-
-    b.setPosition(
-        b.getPosition()
-        + correction * inverseMassB
-    );
-
-
-    // ---------------------------------
-    // Relative velocity
-    // ---------------------------------
-
-    const glm::vec2 relativeVelocity =
-        b.getVelocity()
-        - a.getVelocity();
-
-
-    const float velocityAlongNormal =
-        glm::dot(
-            relativeVelocity,
-            normal
-        );
-
-
-    // Obiekty już się od siebie oddalają.
-    //
-    // Korekcja pozycji została wykonana wyżej,
-    // ale nie dokładamy kolejnego impulsu.
-
-    if (velocityAlongNormal > 0.0f)
-    {
-        return;
-    }
-
-
-    // ---------------------------------
-    // Restitution
-    // ---------------------------------
-
-    const float restitution =
-        std::min(
-            a.getRestitution(),
-            b.getRestitution()
-        );
-
-
-    // ---------------------------------
-    // Collision impulse
-    // ---------------------------------
-
-    const float impulseMagnitude =
-        -(1.0f + restitution)
-        * velocityAlongNormal
-        / inverseMassSum;
-
-
-    const glm::vec2 impulse =
-        impulseMagnitude * normal;
-
-
-    // A dostaje impuls w przeciwną stronę.
-
-    a.setVelocity(
-        a.getVelocity()
-        - impulse * inverseMassA
-    );
-
-
-    // B dostaje impuls w stronę normalnej.
-
-    b.setVelocity(
-        b.getVelocity()
-        + impulse * inverseMassB
-    );
+void CollisionSolver::resolveCollision(
+    Ship& ship,
+    Circle& circle
+)
+{
+    resolveBodies(ship, circle);
 }

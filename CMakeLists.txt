@@ -19,11 +19,17 @@ add_executable(PhysicsSimulation
     src/simulation/objects/circle/circle.cpp
     src/simulation/objects/circle/circle.hpp
 
+    src/simulation/objects/ship/ship.hpp
+    src/simulation/objects/ship/ship.cpp
+
     src/renderer/shader.cpp
     src/renderer/shader.hpp
 
     src/renderer/circle_renderer.cpp
     src/renderer/circle_renderer.hpp
+
+        src/renderer/ship_renderer.cpp
+    src/renderer/ship_renderer.hpp
 
     src/simulation/physics/world_physics.hpp
     src/simulation/physics/world_physics.cpp

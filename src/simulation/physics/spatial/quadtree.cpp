@@ -425,3 +425,27 @@ bool QuadTree::overlaps(
         node->maxBounds.y >= queryMin.y &&
         node->minBounds.y <= queryMax.y;
 }
+
+
+void QuadTree::query(
+    const glm::vec2& position,
+    float radius,
+    std::vector<Circle*>& result
+) const
+{
+    const float searchRadius =
+        radius + maxCircleRadius;
+
+    const glm::vec2 queryMin =
+        position - glm::vec2(searchRadius);
+
+    const glm::vec2 queryMax =
+        position + glm::vec2(searchRadius);
+
+    query(
+        root,
+        queryMin,
+        queryMax,
+        result
+    );
+}
